@@ -1,37 +1,51 @@
-# Travel Board MVP
+# Trip Share + Split MVP
 
-旅行前の「行きたい場所」を集める、ログイン不要の共有ボードMVPです。
+スマホファーストの「旅程管理 + 割り勘」WebアプリMVPです。ログインなしで `/trip/[shareId]` を共有して使います。
 
-## 1. セットアップ
-1. Node.js 18+ を入れる
-2. 依存をインストール
-   ```bash
-   npm install
-   ```
-3. `.env.example` を `.env.local` にコピーして Supabase の値を入れる
-4. Supabase SQL Editor で `supabase/schema.sql` を実行
-5. 開発サーバー起動
-   ```bash
-   npm run dev
-   ```
+## 技術
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- ローカルダミーデータのみ（DB接続なし）
 
-## 2. 実装手順（初心者向け）
-1. **データを決める**: `boards` と `spots` の2軸を中心に作る。
-2. **トップページを作る**: 「何のアプリか」と「新規ボード作成」ボタンだけ置く。
-3. **ボード作成を作る**: 旅行名を入れたら `share_token` を発行して `board/{token}` へ遷移。
-4. **ボード詳細を作る**: token から board を取得し、spots 一覧を表示。
-5. **スポット追加フォームを作る**: URL・画像URL・メモなどを保存。
-6. **見た目を整える**: CSS columns で Masonry 風、画像エラー時はプレースホルダー。
-7. **共有導線を作る**: 「これ送る？」で現在URLコピー。
+## 使い方
+```bash
+npm install
+npm run dev
+```
 
-## 3. MVP機能
-- ログインなしでボード作成
-- URL共有で共同編集
-- セクション絞り込み（すべて / Day1 / Day2 / Maybe / お気に入り）
-- お気に入りトグル
+`http://localhost:3000/trip/syd-mel-2026` を開いて動作確認します。
 
-## 4. 次にやると良い改善
-- タグの正規化（`tags` / `spot_tags` へ実保存）
-- 楽観的UI更新
-- RLSポリシー
-- 画像の自動サムネイル
+## MVP実装内容
+- `/trip/[shareId]` の旅程トップ（固定ヘッダー、共有、参加者表示）
+- ニックネーム参加（localStorage保存）
+- Itineraryタブ（Today / Board）
+- 予定追加（MVPではプロンプトUI）
+- Splitタブ（支払い一覧、合計、1人あたり、収支、精算案）
+- 支払い追加（MVPではプロンプトUI）
+- ダークモード対応（OS設定に追従）
+
+## ファイル構成
+- `app/trip/[shareId]/page.tsx`: 共有URLページ
+- `components/trip/TripPageClient.tsx`: 画面UIと状態管理
+- `lib/dummyData.ts`: ダミーデータ
+- `lib/split.ts`: 割り勘計算ロジック
+- `types/trip.ts`: 型定義
+
+## 初心者向けの実装手順
+1. **まず型を作る** (`types/trip.ts`)：予定・支払い・参加者の型を決める。
+2. **ダミーデータを用意** (`lib/dummyData.ts`)：実際の旅行データでUIを先に作る。
+3. **1画面で完結するUIを作る** (`TripPageClient.tsx`)：
+   - 固定ヘッダー
+   - Itinerary/Splitタブ
+   - ADD/PAYボタン
+4. **Itinerary表示**：
+   - Today: 今日だけ時系列
+   - Board: 日付ごとグループ
+5. **Split計算ロジック** (`lib/split.ts`)：
+   - `paidBy` は全額立替
+   - `participants` で均等割り
+   - `支払額 - 負担額` で収支計算
+   - 債務者→債権者マッチングで精算案を出す
+6. **ニックネーム参加**：初回入力を localStorage に保存し、追加者表示に使う。
+7. **最後に見た目調整**：スマホ余白、カードUI、ダークモード、ボタンの押しやすさを整える。
